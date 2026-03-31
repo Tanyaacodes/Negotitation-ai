@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Trophy, ArrowLeft } from 'lucide-react';
 
-const API_BASE = 'http://localhost:5000/api/game';
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/game';
 
 const Leaderboard = () => {
   const [leaderboard, setLeaderboard] = useState([]);

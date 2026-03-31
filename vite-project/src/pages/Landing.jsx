@@ -5,7 +5,7 @@ import axios from 'axios';
 import { ShoppingCart, MessageSquare, Brain, Trophy } from 'lucide-react';
 import { PRODUCTS, diffColor, fmt } from '../logic/products';
 
-const API_BASE = 'http://localhost:5000/api/game';
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/game';
 
 /* ── Name Modal ────────────────────────────────── */
 const NameModal = ({ onClose, onSubmit }) => {

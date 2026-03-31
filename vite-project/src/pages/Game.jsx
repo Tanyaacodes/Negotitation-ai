@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
-const API_BASE = 'http://localhost:5000/api/game';
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/game';
 
 const PRODUCT_META = {
   'mannat':        { name: "Shahrukh Khan's Mannat", icon: '🕌', category: 'Savage',    color: '#a78bfa', glow: 'rgba(167,139,250,0.5)' },
