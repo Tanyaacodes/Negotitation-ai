@@ -1,6 +1,11 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import axios from 'axios';
+import { ShoppingCart, MessageSquare, Brain, Trophy } from 'lucide-react';
+import { PRODUCTS, diffColor, fmt } from '../logic/products';
+
+const API_BASE = 'http://localhost:5000/api/game';
 
 /* ── Name Modal ────────────────────────────────── */
 const NameModal = ({ onClose, onSubmit }) => {
@@ -48,10 +53,10 @@ const NameModal = ({ onClose, onSubmit }) => {
 
 /* ── How-to steps ─────────────────────────────── */
 const steps = [
-  { n: '01', icon: '🛒', title: 'Pick a Product', desc: 'Choose from scooter, smartwatch, headset, or desk. Each has unique pricing challenges.' },
-  { n: '02', icon: '💬', title: 'Start Negotiating', desc: 'AI shopkeeper quotes first. You counter-offer. Arguments must be convincing.' },
-  { n: '03', icon: '🧠', title: 'Master Your Tactics', desc: 'Empathy, logic, or urgency—pick the right strategy for each seller.' },
-  { n: '04', icon: '🏆', title: 'Win the Deal', desc: 'Hit your target price. Fewer rounds = higher score.' },
+  { n: '01', Icon: ShoppingCart, accent: '#a78bfa', title: 'Pick a Product', desc: 'Choose your item. Every seller has its own negotiation “mood”.' },
+  { n: '02', Icon: MessageSquare, accent: '#38bdf8', title: 'Start Negotiating', desc: 'Seller quotes first. You counter with reasoning + timing.' },
+  { n: '03', Icon: Brain, accent: '#4ade80', title: 'Master Your Tactics', desc: 'Use empathy, logic, or urgency. The AI reacts differently each round.' },
+  { n: '04', Icon: Trophy, accent: '#facc15', title: 'Win the Deal', desc: 'Hit a lower price. Fewer rounds = bigger bragging rights.' },
 ];
 
 /* ── Why useful cards ─────────────────────────── */
@@ -65,6 +70,8 @@ const reasons = [
 export default function Landing() {
   const navigate   = useNavigate();
   const [showModal, setShowModal] = useState(false);
+  const [topDeals, setTopDeals] = useState([]);
+  const [isTopDealsLoading, setIsTopDealsLoading] = useState(true);
 
   const handleStartGame = () => {
     const existing = localStorage.getItem('playerName');
@@ -73,6 +80,24 @@ export default function Landing() {
   };
 
   const handleNameSubmit = () => { setShowModal(false); navigate('/pick'); };
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const res = await axios.get(`${API_BASE}/leaderboard`);
+        setTopDeals(res.data || []);
+      } catch {
+        setTopDeals([]);
+      } finally {
+        setIsTopDealsLoading(false);
+      }
+    };
+    load();
+  }, []);
+
+  const formatPrice = (price) => {
+    return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(price);
+  };
 
   return (
     <div className="landing-root">
@@ -208,7 +233,9 @@ export default function Landing() {
               whileHover={{ y: -5 }}
             >
               <div className="lsc-num">{s.n}</div>
-              <div className="lsc-icon">{s.icon}</div>
+              <div className="lsc-icon" style={{ color: s.accent }}>
+                <s.Icon size={44} />
+              </div>
               <h3 className="lsc-title">{s.title}</h3>
               <p className="lsc-desc">{s.desc}</p>
             </motion.div>
@@ -230,48 +257,31 @@ export default function Landing() {
         </motion.div>
 
         <div className="negotiation-text-grid">
-          {[
-            {
-              heading: 'Premium Headphones',
-              subline: 'Audio Mastery',
-              points: ['High-value negotiation', 'Use emotion + urgency tactics', 'Challenge: Avoid emotional discounting'],
-              difficulty: 'Medium'
-            },
-            {
-              heading: 'Smartwatch Pro',
-              subline: 'Tech Strategy',
-              points: ['Data-driven pricing battles', 'Justify with solid facts', 'Challenge: Convert logic to deals'],
-              difficulty: 'Hard'
-            },
-            {
-              heading: 'Sneaker Special',
-              subline: 'Quick Wins',
-              points: ['Impulse buy scenarios', 'Strike fast agreements', 'Challenge: Confidence over time'],
-              difficulty: 'Easy'
-            },
-          ].map((item, i) => (
+          {PRODUCTS.slice(0, 3).map((product, i) => (
             <motion.div
-              key={item.heading}
+              key={product.id}
               className="negotiation-text-card"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.12 }}
               whileHover={{ y: -4 }}
+              style={{ '--card-color': product.color }}
             >
-              <h3 className="negotiation-heading">{item.heading}</h3>
-              <p className="negotiation-subline">{item.subline}</p>
+              <div style={{ fontSize: '2rem', marginBottom: '10px' }}>{product.icon}</div>
+              <h3 className="negotiation-heading">{product.name}</h3>
+              <p className="negotiation-subline">{product.mood}</p>
               <ul className="negotiation-points">
-                {item.points.map((point, idx) => (
-                  <li key={idx}>{point}</li>
-                ))}
+                <li>{product.desc}</li>
+                <li>{product.tagline}</li>
+                <li>Seller asks: {fmt(product.msrp)}</li>
               </ul>
               <div className="negotiation-footer">
-                <span className={`difficulty-badge ${item.difficulty.toLowerCase()}`}>{item.difficulty}</span>
+                <span className={`difficulty-badge ${product.diff.toLowerCase()}`}>{product.diff}</span>
                 <button
                   className="start-btn"
                   onClick={() => {
-                    localStorage.setItem('selectedDifficulty', item.difficulty.toLowerCase());
+                    localStorage.setItem('selectedProduct', product.id);
                     handleStartGame();
                   }}
                 >
@@ -283,7 +293,47 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ── Final CTA ──────── (removed) */}
+      {/* ── Top Deals Preview ──────── */}
+      <section className="landing-section" id="top-deals" style={{ paddingTop: 60 }}>
+        <motion.div
+          className="landing-section-header"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+        >
+          <span className="landing-section-tag">LIVE LEADERBOARD</span>
+          <h2 className="landing-section-h2">Top Deals (Lowest Wins)</h2>
+          <p className="landing-section-p">Real-time global hall of fame. Bet you can beat them.</p>
+        </motion.div>
+
+        <div style={{ maxWidth: 820, margin: '0 auto' }}>
+          {isTopDealsLoading ? (
+            <div className="topdeals-skeleton">
+              {Array.from({ length: 5 }).map((_, idx) => (
+                <div key={idx} className="topdeals-skeleton-row" />
+              ))}
+            </div>
+          ) : topDeals.length === 0 ? (
+            <div className="topdeals-empty glass-morphism">
+              <div className="topdeals-empty-title">Be the first deal-maker</div>
+              <div className="topdeals-empty-sub">Hall of Fame abhi empty hai. Lower price pe jaake history banao.</div>
+            </div>
+          ) : (
+            <div className="leaderboard-list">
+              {topDeals.slice(0, 5).map((item, idx) => (
+                <div key={`${item.name}-${idx}`} className="leaderboard-item" style={{ marginBottom: 10 }}>
+                  <div className="leaderboard-rank">{idx === 0 ? '🥇' : `#${idx + 1}`}</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <div style={{ fontWeight: 800, letterSpacing: 0.2 }}>{item.name}</div>
+                    <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>Final negotiated price</div>
+                  </div>
+                  <div style={{ color: 'var(--success-green)', fontWeight: 900 }}>{formatPrice(item.price)}</div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
 
       {/* ── Footer ─────────── */}
       <footer className="landing-footer">

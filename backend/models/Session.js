@@ -16,6 +16,9 @@ const sessionSchema = new mongoose.Schema({
     isDealDone: { type: Boolean, default: defaultState.isDealDone },
     isWalkedAway: { type: Boolean, default: defaultState.isWalkedAway },
     profitMargin: { type: Number, default: defaultState.profitMargin },
+    // Hidden seller constraints (used only by the negotiation engine)
+    targetProfitMargin: { type: Number, default: defaultState.targetProfitMargin },
+    strategy: { type: String, default: defaultState.strategy },
     history: { type: Array, default: defaultState.history }
   },
   createdAt: { type: Date, expires: '24h', default: Date.now } // Auto-delete sessions after 24 hours

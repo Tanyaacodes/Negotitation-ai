@@ -18,14 +18,14 @@ const PRODUCTS = [
   },
   {
     id: 'leather-jacket',
-    name: 'Smartwatch',
-    desc: 'Heart-rate + fitness tracker',
+    name: 'Leather Jacket',
+    desc: 'Premium leather feel, built for daily flex.',
     msrp: 7000,
     targetPrice: 5250,
     complexity: 'EASY',
     color: '#fb923c',
     glow: 'rgba(251,146,60,0.4)',
-    icon: '⌚',
+    icon: '🧥',
     category: 'Wearables'
   },
   {

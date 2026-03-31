@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Trophy, ArrowLeft, Loader2, Award } from 'lucide-react';
+import { Trophy, ArrowLeft } from 'lucide-react';
 
 const API_BASE = 'http://localhost:5000/api/game';
 
@@ -26,13 +26,26 @@ const Leaderboard = () => {
   }, []);
 
   const formatPrice = (price) => {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(price);
+    return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(price);
   };
 
   if (loading) {
     return (
       <div className="app-container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-        <Loader2 className="glow-btn" size={48} color="var(--accent-cyan)" style={{ animation: 'spin 2s linear infinite' }} />
+        <div style={{ width: '100%', maxWidth: 820, padding: 40 }}>
+          <div className="lb-hero-skeleton">
+            <div className="lb-hero-skeleton-icon" />
+            <div className="lb-hero-skeleton-lines">
+              <div className="lb-skeleton-line" style={{ width: '70%' }} />
+              <div className="lb-skeleton-line" style={{ width: '45%' }} />
+            </div>
+          </div>
+          <div className="lb-grid">
+            {Array.from({ length: 6 }).map((_, idx) => (
+              <div key={idx} className="lb-card-skeleton" />
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
@@ -43,58 +56,51 @@ const Leaderboard = () => {
         <ArrowLeft size={20} /> Back to Hub
       </button>
       
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="leaderboard-header text-center"
+        transition={{ duration: 0.35 }}
+        className="lb-hero"
       >
-        <Trophy size={48} color="gold" className="mx-auto" style={{ marginBottom: 16 }} />
-        <h1>HALL OF FAME</h1>
-        <p>Global Elite Architects closing the best deals.</p>
+        <Trophy size={54} color="gold" className="lb-hero-icon" />
+        <div className="lb-hero-text">
+          <div className="lb-hero-title">HALL OF FAME</div>
+          <div className="lb-hero-sub">Lowest negotiated price gets crowned.</div>
+        </div>
       </motion.div>
-
-      <motion.div 
+      
+      <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 0.2 }}
-        className="leaderboard-table-wrapper glass-morphism"
+        transition={{ delay: 0.15 }}
+        className="lb-grid"
       >
-        <table className="full-leaderboard">
-          <thead>
-            <tr>
-              <th>RANK</th>
-              <th>BUILDER NAME</th>
-              <th>STATUS</th>
-              <th style={{ textAlign: 'right' }}>FINAL NEGOTIATED PRICE</th>
-            </tr>
-          </thead>
-          <tbody>
-            {leaderboard.length === 0 ? (
-              <tr>
-                <td colSpan="4" style={{ textAlign: 'center', padding: '40px' }}>No deals constructed yet. The vault is waiting.</td>
-              </tr>
-            ) : (
-              leaderboard.map((item, idx) => (
-                <motion.tr 
-                  key={idx}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.1 * idx }}
-                  className={idx === 0 ? 'top-rank' : ''}
-                >
-                  <td>
-                    {idx === 0 ? <Award color="gold" size={24}/> : <span className="rank-num">0{idx + 1}</span>}
-                  </td>
-                  <td className="player-name">{item.name}</td>
-                  <td><span className="status-badge">LEGEND</span></td>
-                  <td style={{ textAlign: 'right', fontWeight: 'bold', color: 'var(--success-green)' }}>
-                    {formatPrice(item.price)}
-                  </td>
-                </motion.tr>
-              ))
-            )}
-          </tbody>
-        </table>
+        {leaderboard.length === 0 ? (
+          <div className="lb-empty glass-morphism">
+            <div className="lb-empty-top">Be the first legend</div>
+            <div className="lb-empty-sub">Hall of Fame abhi empty hai. Go negotiate and crush that minimum price.</div>
+          </div>
+        ) : (
+          leaderboard.slice(0, 10).map((item, idx) => (
+            <motion.div
+              key={`${item.name}-${idx}`}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.05 * idx }}
+              className={`lb-card ${idx === 0 ? 'lb-card-top' : ''}`}
+              whileHover={{ y: -6 }}
+            >
+              <div className="lb-card-toprow">
+                <div className="lb-rank-badge">
+                  {idx === 0 ? '🥇' : `#${idx + 1}`}
+                </div>
+                <div className="lb-status-badge">LEGEND</div>
+              </div>
+              <div className="lb-name">{item.name}</div>
+              <div className="lb-price">{formatPrice(item.price)}</div>
+            </motion.div>
+          ))
+        )}
       </motion.div>
     </div>
   );

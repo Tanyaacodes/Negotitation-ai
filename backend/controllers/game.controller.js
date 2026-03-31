@@ -31,11 +31,10 @@ export const startSession = async (req, res) => {
            patience: newSession.state.patience,
            mood: newSession.state.mood,
            rounds: newSession.state.rounds,
-           profitMargin: newSession.state.profitMargin,
            msrp: newSession.state.msrp,
-           minPrice: randomizedMinPrice,
+           isDealDone: newSession.state.isDealDone,
+           isWalkedAway: newSession.state.isWalkedAway,
            productId: newSession.state.productId,
-           targetPrice: randomizedMinPrice + Math.round(randomizedMinPrice * 0.05)
         } 
     });
   } catch (error) {
@@ -69,17 +68,14 @@ export const processTurn = async (req, res) => {
     await session.save();
     
     const sanitizedState = {
-        currentOffer: session.state.currentOffer,
-        patience: session.state.patience,
-        mood: session.state.mood,
-        rounds: session.state.rounds,
-        profitMargin: session.state.profitMargin,
-        msrp: session.state.msrp,
-        minPrice: session.state.minPrice,
-        productId: session.state.productId,
-        targetPrice: session.state.minPrice + Math.round(session.state.minPrice * 0.05),
-        isDealDone: session.state.isDealDone,
-        isWalkedAway: session.state.isWalkedAway
+      currentOffer: session.state.currentOffer,
+      patience: session.state.patience,
+      mood: session.state.mood,
+      rounds: session.state.rounds,
+      msrp: session.state.msrp,
+      productId: session.state.productId,
+      isDealDone: session.state.isDealDone,
+      isWalkedAway: session.state.isWalkedAway
     };
 
     res.status(200).json({
@@ -113,11 +109,8 @@ export const processWalkAway = async (req, res) => {
         patience: session.state.patience,
         mood: session.state.mood,
         rounds: session.state.rounds,
-        profitMargin: session.state.profitMargin,
         msrp: session.state.msrp,
-        minPrice: session.state.minPrice,
         productId: session.state.productId,
-        targetPrice: session.state.minPrice + Math.round(session.state.minPrice * 0.05),
         isDealDone: session.state.isDealDone,
         isWalkedAway: session.state.isWalkedAway
       };

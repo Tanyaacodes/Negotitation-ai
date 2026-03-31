@@ -4,13 +4,16 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
-const API_BASE = 'http://localhost:5000/api/game';
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/game';
 
 const PRODUCT_META = {
-  'smartphone':     { icon: '�', category: 'Mobility',    color: '#a78bfa', glow: 'rgba(167,139,250,0.5)' },
-  'leather-jacket': { icon: '⌚', category: 'Wearables',   color: '#fb923c', glow: 'rgba(251,146,60,0.5)'  },
-  'vegetables':     { icon: '🎧', category: 'Gaming',      color: '#4ade80', glow: 'rgba(74,222,128,0.5)'  },
-  'sofa':           { icon: '🧑‍💻', category: 'Workspace',   color: '#38bdf8', glow: 'rgba(56,189,248,0.5)'  },
+  'mannat':        { name: "Shahrukh Khan's Mannat", icon: '🕌', category: 'Savage',    color: '#a78bfa', glow: 'rgba(167,139,250,0.5)' },
+  'bandana':       { name: "Harsh bhaiya's Bandana", icon: '🧢', category: 'Bakchodi Mode on',     color: '#fb923c', glow: 'rgba(251,146,60,0.5)'  },
+  'specs':         { name: "Ankur BHaiya's Specs", icon: '👓', category: 'Guide Mode on',       color: '#4ade80', glow: 'rgba(74,222,128,0.5)'  },
+  'meloni':        { name: 'Modi ji ki Meloni', icon: '🍉', category: 'Love is in the air',     color: '#38bdf8', glow: 'rgba(56,189,248,0.5)'  },
+  'kursi':         { name: "Chacha's Kursi", icon: '🪑', category: 'Aura+++',        color: '#f472b6', glow: 'rgba(244,114,182,0.45)' },
+  'lpg-gf':        { name: '10 LPG gases with gf', icon: '🔥', category: 'Roast Mode on', color: '#facc15', glow: 'rgba(250,204,21,0.35)' },
+  'brain-for-u':   { name: 'A brain for u', icon: '🧠', category: 'Friendly',      color: '#22c55e', glow: 'rgba(34,197,94,0.35)' },
 };
 
 const fmt = (n) => `₹${Number(n).toLocaleString('en-IN')}`;
@@ -18,12 +21,12 @@ const fmt = (n) => `₹${Number(n).toLocaleString('en-IN')}`;
 function Game() {
   const navigate   = useNavigate();
   const playerName = localStorage.getItem('playerName') || 'Guest';
-  const productId  = localStorage.getItem('selectedProduct') || 'smartphone';
-  const meta       = PRODUCT_META[productId] || PRODUCT_META['smartphone'];
+  const productId  = localStorage.getItem('selectedProduct') || 'mannat';
+  const meta       = PRODUCT_META[productId] || PRODUCT_META['mannat'];
 
   const [sessionId, setSessionId]   = useState(null);
   const [loading, setLoading]       = useState(true);
-  const [gameState, setGameState]   = useState({ msrp: 0, targetPrice: 0, minPrice: 0, currentOffer: 0, patience: 100, rounds: 0, isDealDone: false, isWalkedAway: false });
+  const [gameState, setGameState]   = useState({ msrp: 0, currentOffer: 0, patience: 100, rounds: 0, isDealDone: false, isWalkedAway: false, mood: 'Professional', productId });
   const [messages, setMessages]     = useState([]);
   const [offer, setOffer]           = useState('');
   const [reason, setReason]         = useState('');
@@ -40,13 +43,20 @@ function Game() {
         setSessionId(res.data.sessionId);
         const st = res.data.initialState;
         setGameState(st);
-        const pName = (st.productId || productId).replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-        setMessages([{ who: 'ai', text: `Namaste! Aaj main aapko yeh ${pName} sirf ${fmt(st.currentOffer)} mein de sakta hoon. Kya offer karenge? 😊` }]);
+        const productDisplay = meta?.name || (st.productId || productId).replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+        setMessages([{ who: 'ai', text: `Namaste! Aaj main aapko yeh ${productDisplay} sirf ${fmt(st.currentOffer)} mein de sakta hoon. Kya offer karenge?` }]);
       } catch {
         setMessages([{ who: 'ai', text: '❌ Server se connect nahi ho paya. Make sure backend is running on port 5000.' }]);
       } finally { setLoading(false); }
     })();
   }, []);
+
+  const TACTICS = [
+    { label: 'Student / Broke', reason: `Main student/broke hu bhai. ${meta?.name || ''} ke liye thoda discount de do. Thoda insaaf karo.` },
+    { label: 'Market Logic', reason: `Market me sasta hai. ${meta?.name || ''} ke competitor/reviews ke hisaab se price justify karo.` },
+    { label: 'Cash Now', reason: `Cash abhi de dunga. ${meta?.name || ''} ka deal done karein? Please yaar, now.` },
+    { label: 'Urgency', reason: `Aaj hi finalize karna hai. ${meta?.name || ''} ke best price abhi cash pay, de do.` },
+  ];
 
   const sendOffer = async () => {
     if (!offer.trim() || !sessionId || gameState.isDealDone || gameState.isWalkedAway) return;
@@ -57,7 +67,7 @@ function Game() {
     setOffer('');
     setReason('');
     try {
-      const res = await axios.post(`${API_BASE}/negotiate`, { sessionId, offer: parseFloat(offerVal), message: reasonVal });
+      const res = await axios.post(`${API_BASE}/turn`, { sessionId, offer: parseFloat(offerVal), reason: reasonVal, message: reasonVal });
       const { sellerResponse, newState } = res.data;
       setTimeout(() => {
         setIsTyping(false);
@@ -66,7 +76,7 @@ function Game() {
         if (newState.isDealDone) {
           const sc = Math.round(((newState.msrp - newState.currentOffer) / 100) * Math.max(1, 20 - newState.rounds));
           setScore(sc);
-          axios.post(`${API_BASE}/save-score`, { sessionId, playerName, score: sc, finalPrice: newState.currentOffer }).catch(() => {});
+          axios.post(`${API_BASE}/leaderboard`, { sessionId, playerName }).catch(() => {});
         }
       }, 800 + Math.random() * 600);
     } catch {
@@ -79,7 +89,7 @@ function Game() {
     if (!sessionId || gameState.isDealDone || gameState.isWalkedAway) return;
     setIsTyping(true);
     try {
-      const res = await axios.post(`${API_BASE}/walk-away`, { sessionId });
+      const res = await axios.post(`${API_BASE}/walkaway`, { sessionId });
       setTimeout(() => {
         setIsTyping(false);
         setMessages(prev => [...prev, { who: 'ai', text: res.data.message }]);
@@ -93,7 +103,8 @@ function Game() {
   const patiencePct  = Math.max(0, gameState.patience);
   const patienceClr  = patiencePct > 60 ? '#4ade80' : patiencePct > 30 ? '#facc15' : '#f87171';
   const isOver       = gameState.isDealDone || gameState.isWalkedAway;
-  const productLabel = (gameState.productId || productId).replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  const productLabel = meta?.name || (gameState.productId || productId).replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  const savedAmt = Math.max(0, (gameState.msrp || 0) - (gameState.currentOffer || 0));
 
   if (loading) return (
     <div className="fg-loading">
@@ -140,8 +151,8 @@ function Game() {
         </div>
         <div className="fg-stat-sep" />
         <div className="fg-stat">
-          <div className="fg-stat-label">Target</div>
-          <div className="fg-stat-val fg-stat-green">≤ {fmt(gameState.targetPrice)}</div>
+          <div className="fg-stat-label">Saved</div>
+          <div className="fg-stat-val fg-stat-green">{fmt(savedAmt)}</div>
         </div>
         <div className="fg-stat-sep" />
         <div className="fg-stat">
@@ -178,14 +189,12 @@ function Game() {
         {/* LEFT: product info panel */}
         <aside className="fg-sidebar glass-morphism">
           <div className="fg-sb-icon">{meta.icon}</div>
-          <h2 className="fg-sb-name">{productLabel}</h2>
+          <h2 className={`fg-sb-name ${productId === 'leather-jacket' ? 'glitch' : ''}`}>{productLabel}</h2>
           <p className="fg-sb-cat">{meta.category}</p>
 
           <div className="fg-sb-divider" />
 
           <div className="fg-sb-row"><span>Asking</span><strong>{fmt(gameState.msrp)}</strong></div>
-          <div className="fg-sb-row"><span>Min price</span><strong>{fmt(gameState.minPrice)}</strong></div>
-          <div className="fg-sb-row"><span>Your target</span><strong style={{ color: '#4ade80' }}>≤ {fmt(gameState.targetPrice)}</strong></div>
           <div className="fg-sb-row"><span>Current offer</span><strong style={{ color: meta.color }}>{fmt(gameState.currentOffer)}</strong></div>
 
           <div className="fg-sb-divider" />
@@ -280,8 +289,22 @@ function Game() {
                   🚶 Walk Away
                 </button>
               </div>
+              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center' }}>
+                {TACTICS.map(t => (
+                  <button
+                    key={t.label}
+                    type="button"
+                    onClick={() => setReason(t.reason)}
+                    className="fg-tactic-chip"
+                    style={{ borderColor: meta.color, color: 'rgba(255,255,255,0.9)' }}
+                    disabled={isTyping}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+              </div>
               <div className="fg-hint">
-                Min: {fmt(gameState.minPrice)} · Target: ≤ {fmt(gameState.targetPrice)} · Playing as 👤 <strong>{playerName}</strong>
+                Playing as 👤 <strong>{playerName}</strong> · Deal price wins (lower = higher rank)
               </div>
             </div>
           )}
@@ -308,7 +331,9 @@ function Game() {
               <p className="fg-deal-sub">
                 {gameState.isDealDone
                   ? `${meta.icon} ${productLabel} — ${fmt(gameState.currentOffer)} mein liya!`
-                  : `Offer bahut kam tha! Shopkeeper ne deal tod di. 🙅\nMin price tha: ${fmt(gameState.minPrice)}`
+                  : gameState.isWalkedAway
+                    ? 'Shopkeeper ne walk away kar diya. Seller ka floor hidden tha—next round me reasoning + urgency combo try karo.'
+                    : 'Offer convince nahi hua. Next round me strategy match karke (empathy/logic/cash-now) offer do.'
                 }
               </p>
 
