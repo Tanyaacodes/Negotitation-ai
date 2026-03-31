@@ -141,41 +141,6 @@ export default function ProductPicker() {
 
   return (
     <div className="picker-root">
-      {/* Navbar */}
-      <nav className="picker-navbar glass-morphism">
-        <div className="navbar-left">
-          <button className="navbar-btn" onClick={() => navigate('/')}>
-            <Home size={18} />
-            <span>Home</span>
-          </button>
-          <button className="navbar-btn" onClick={() => navigate('/leaderboard')}>
-            <Trophy size={18} />
-            <span>Leaderboard</span>
-          </button>
-        </div>
-        
-        <div className="navbar-center">
-          <h1 className="navbar-title">Choose Your Battle</h1>
-        </div>
-        
-        <div className="navbar-right">
-          <div className="player-info">
-            <User size={16} />
-            <span>{playerName}</span>
-          </div>
-          <button className="navbar-btn tips-btn" onClick={() => setShowTips(true)}>
-            <Lightbulb size={18} />
-            <span>Tips</span>
-          </button>
-        </div>
-      </nav>
-
-      {/* Random Tip Bar */}
-      <div className="tip-bar glass-morphism">
-        <Lightbulb size={16} className="tip-icon" />
-        <span className="tip-text">{randomTip}</span>
-      </div>
-
       <div className="picker-grid-wrap">
         <div className="picker-products-grid">
           {[...PRODUCTS, RANDOM_PRODUCT].map((p) => (
@@ -218,42 +183,6 @@ export default function ProductPicker() {
           ))}
         </div>
       </div>
-
-      {/* Tips Modal */}
-      <AnimatePresence>
-        {showTips && (
-          <motion.div
-            className="tips-modal-overlay"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setShowTips(false)}
-          >
-            <motion.div
-              className="tips-modal glass-morphism"
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.8, opacity: 0 }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="tips-modal-header">
-                <h2>🎯 Pro Negotiation Tips</h2>
-                <button className="tips-close-btn" onClick={() => setShowTips(false)}>
-                  <X size={20} />
-                </button>
-              </div>
-              <div className="tips-modal-content">
-                {tips.map((tip, index) => (
-                  <div key={index} className="tip-item">
-                    <span className="tip-number">{index + 1}.</span>
-                    <span className="tip-content">{tip}</span>
-                  </div>
-                ))}
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }
