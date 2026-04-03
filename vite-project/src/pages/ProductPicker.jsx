@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Trophy, User, Lightbulb, X, Home } from 'lucide-react';
-import { PRODUCTS, RANDOM_PRODUCT, diffColor, fmt } from '../logic/products';
+import { PRODUCTS, RANDOM_PRODUCT, fmt } from '../logic/products';
 
 
 // ✅ ONLY ONE export
@@ -78,13 +78,13 @@ export default function ProductPicker() {
                 '--prod-color': p.color,
                 '--prod-glow': p.glow
               }}
-              whileHover={{ y: -4 }}
+              whileHover={{ y: -2 }}
               transition={{ type: 'spring', stiffness: 300, damping: 20 }}
             >
               <div className="product-tile-glow" />
               <div className="product-tile-icon">{p.icon}</div>
               <h3 className="product-tile-name">{p.name}</h3>
-              <p className="product-tile-desc">{p.desc}</p>
+
               <div className="product-tile-prices">
                 <div className="price-row">
                   <span className="price-label">MSRP:</span>

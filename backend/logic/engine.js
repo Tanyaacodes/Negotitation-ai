@@ -1,19 +1,23 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 let genAI = null;
-// Initialize once if API key exists
-if (process.env.GEMINI_API_KEY) {
-    try {
-        genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    } catch (e) {
-        console.error("Gemini Init Error", e);
+
+const getGenAI = () => {
+    if (!genAI && process.env.GEMINI_API_KEY) {
+        try {
+            genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+        } catch (e) {
+            console.error("Gemini Init Error", e);
+        }
     }
-}
+    return genAI;
+};
 
 const generateAIResponseAsync = async (systemPrompt, userPrompt, fallback) => {
-    if (!genAI) return fallback;
+    const aiInstance = getGenAI();
+    if (!aiInstance) return fallback;
     try {
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const model = aiInstance.getGenerativeModel({ model: "gemini-flash-latest" });
         const result = await model.generateContent([
             { text: systemPrompt },
             { text: userPrompt }

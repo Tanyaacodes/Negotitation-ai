@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 import { ShoppingCart, MessageSquare, Brain, Trophy } from 'lucide-react';
-import { PRODUCTS, diffColor, fmt } from '../logic/products';
+import { PRODUCTS, fmt } from '../logic/products';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/game';
 
@@ -230,7 +230,7 @@ export default function Landing() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.1 }}
-              whileHover={{ y: -5 }}
+              whileHover={{ y: -2 }}
             >
               <div className="lsc-num">{s.n}</div>
               <div className="lsc-icon" style={{ color: s.accent }}>
@@ -257,39 +257,49 @@ export default function Landing() {
         </motion.div>
 
         <div className="negotiation-text-grid">
-          {PRODUCTS.slice(0, 3).map((product, i) => (
-            <motion.div
-              key={product.id}
-              className="negotiation-text-card"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.12 }}
-              whileHover={{ y: -4 }}
-              style={{ '--card-color': product.color }}
-            >
-              <div style={{ fontSize: '2rem', marginBottom: '10px' }}>{product.icon}</div>
-              <h3 className="negotiation-heading">{product.name}</h3>
-              <p className="negotiation-subline">{product.mood}</p>
-              <ul className="negotiation-points">
-                <li>{product.desc}</li>
-                <li>{product.tagline}</li>
-                <li>Seller asks: {fmt(product.msrp)}</li>
-              </ul>
-              <div className="negotiation-footer">
-                <span className={`difficulty-badge ${product.diff.toLowerCase()}`}>{product.diff}</span>
-                <button
-                  className="start-btn"
-                  onClick={() => {
-                    localStorage.setItem('selectedProduct', product.id);
-                    handleStartGame();
-                  }}
-                >
-                  Begin →
-                </button>
-              </div>
-            </motion.div>
-          ))}
+          {PRODUCTS.slice(0, 3).map((product, i) => {
+            const savingsPct = Math.round(((product.msrp - product.target) / product.msrp) * 100);
+            const cardMeta = [
+              { mood: '😤 Overconfident', tactic: 'Emotional guilt trip', diff: 'Hard', diffClass: 'hard' },
+              { mood: '😅 Kanjoos but nice', tactic: 'Roast + humour combo', diff: 'Medium', diffClass: 'medium' },
+              { mood: '🎓 Academic snob', tactic: 'Student card + logic', diff: 'Easy', diffClass: 'easy' },
+            ][i] || { mood: '🤔 Unpredictable', tactic: 'Any counter offer', diff: 'Medium', diffClass: 'medium' };
+
+            return (
+              <motion.div
+                key={product.id}
+                className="negotiation-text-card"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.12 }}
+                whileHover={{ y: -2 }}
+                style={{ '--card-color': product.color }}
+              >
+                <div style={{ fontSize: '2rem', marginBottom: '10px' }}>{product.icon}</div>
+                <h3 className="negotiation-heading">{product.name}</h3>
+                <ul className="negotiation-points">
+                  <li>Seller asks: <strong style={{ color: '#ff006e' }}>{fmt(product.msrp)}</strong></li>
+                  <li>Your target: beat below <strong style={{ color: '#4ade80' }}>{fmt(product.target)}</strong></li>
+                  <li>Savings unlocked: <strong style={{ color: product.color }}>{savingsPct}% off</strong></li>
+                  <li>AI mood: {cardMeta.mood}</li>
+                  <li>Best tactic: {cardMeta.tactic}</li>
+                </ul>
+                <div className="negotiation-footer">
+                  <span className={`difficulty-badge ${cardMeta.diffClass}`}>{cardMeta.diff}</span>
+                  <button
+                    className="start-btn"
+                    onClick={() => {
+                      localStorage.setItem('selectedProduct', product.id);
+                      handleStartGame();
+                    }}
+                  >
+                    Begin →
+                  </button>
+                </div>
+              </motion.div>
+            );
+          })}
         </div>
       </section>
 
