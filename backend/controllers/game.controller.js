@@ -43,7 +43,7 @@ export const startSession = async (req, res) => {
 };
 
 export const processTurn = async (req, res) => {
-  const { sessionId, offer, reason, message } = req.body;
+  const { sessionId, offer, reason, message, mode } = req.body;
   const userMsg = message || reason || '';
   
   if (!sessionId || !offer) {
@@ -61,7 +61,12 @@ export const processTurn = async (req, res) => {
         return res.status(400).json({ message: "This negotiation has already concluded." });
     }
 
-    const response = calculateSellerResponse(offer, userMsg, session.state);
+    // Update mode in state if provided
+    if (mode) session.state.mode = mode;
+
+    // Combine offer and message for the engine's processing
+    const fullMessage = `${offer} ${userMsg}`;
+    const response = calculateSellerResponse(fullMessage, session.state);
     
     // Update DB
     session.state = response.newState;
@@ -152,7 +157,7 @@ export const getLeaderboard = async (req, res) => {
     try {
         // Find top 10 lowest prices
         const records = await Leaderboard.find().sort({ price: 1 }).limit(10);
-        res.status(200).json(records);
+        res.status(200).json({ success: true, data: records });
     } catch (error) {
         res.status(500).json({ message: "Failed to fetch leaderboard" });
     }

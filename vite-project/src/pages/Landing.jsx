@@ -85,7 +85,7 @@ export default function Landing() {
     const load = async () => {
       try {
         const res = await axios.get(`${API_BASE}/leaderboard`);
-        setTopDeals(res.data || []);
+        setTopDeals(res.data.data || []);
       } catch {
         setTopDeals([]);
       } finally {

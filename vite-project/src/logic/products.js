@@ -108,4 +108,6 @@ export const RANDOM_PRODUCT = {
 
 export const diffColor = { EASY: '#4ade80', MEDIUM: '#facc15', HARD: '#f87171' };
 
+export const PRODUCT_MAP = PRODUCTS.reduce((acc, p) => ({ ...acc, [p.id]: p }), {});
+
 export const fmt = (n) => `₹${Number(n).toLocaleString('en-IN')}`;

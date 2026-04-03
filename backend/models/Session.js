@@ -19,6 +19,7 @@ const sessionSchema = new mongoose.Schema({
     // Hidden seller constraints (used only by the negotiation engine)
     targetProfitMargin: { type: Number, default: defaultState.targetProfitMargin },
     strategy: { type: String, default: defaultState.strategy },
+    mode: { type: String, default: 'exploit' },
     history: { type: Array, default: defaultState.history }
   },
   createdAt: { type: Date, expires: '24h', default: Date.now } // Auto-delete sessions after 24 hours
