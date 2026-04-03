@@ -66,7 +66,7 @@ export const processTurn = async (req, res) => {
 
     // Combine offer and message for the engine's processing
     const fullMessage = `${offer} ${userMsg}`;
-    const response = calculateSellerResponse(fullMessage, session.state);
+    const response = await calculateSellerResponse(fullMessage, session.state);
     
     // Update DB
     session.state = response.newState;
@@ -105,7 +105,7 @@ export const processWalkAway = async (req, res) => {
       if (!session) return res.status(404).json({ message: "Session not found" });
       if (session.state.isDealDone || session.state.isWalkedAway) return res.status(400).json({ message: "Negotiation concluded" });
 
-      const outcome = handleWalkAway(session.state);
+      const outcome = await handleWalkAway(session.state);
       session.state = outcome.newState;
       await session.save();
 

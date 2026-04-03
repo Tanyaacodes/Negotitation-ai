@@ -301,7 +301,10 @@ function Game() {
                   {TACTICS.map(t => (
                     <button
                       key={t.label}
-                      onClick={() => setMessage(prev => (prev ? prev + " " + t.reason : t.reason))}
+                      onClick={() => setMessage(prev => {
+                        const match = prev.match(/(\d+(?:\.\d+)?)/);
+                        return match ? `${match[0]} ${t.reason}` : t.reason;
+                      })}
                       className="fg-tactic-chip"
                       style={{ borderColor: meta.color }}
                     >
